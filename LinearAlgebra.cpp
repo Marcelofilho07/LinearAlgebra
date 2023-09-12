@@ -287,7 +287,7 @@ void EchelonForm(std::vector<std::vector<float>>& matrix)
 	std::vector<std::pair<int, int>> pivots;
 	std::vector<std::vector<float>> LMatrix {std::vector<float>{1.f,0.f,0.f},std::vector<float>{0.f,1.f,0.f},std::vector<float>{0.f,0.f,1.f}};
 
-	for (unsigned int i = 0, k = 0; i < row-1  && k < col-1; ++i)
+	for (unsigned int i = 0, k = 0; i < row-1  && k < col-1; ++i, ++k)
 	{
 		while(matrix[i][k] == 0.f && k < col)
 		{
@@ -308,22 +308,23 @@ void EchelonForm(std::vector<std::vector<float>>& matrix)
 				matrix = MultiMat(GeneratePermutationMatrix(i,rowToSwap,row), matrix);
 			}
 		}
-		
-		pivots.emplace_back(i,k);
-		
-		for(unsigned int j = (i+1); j < row; ++j)
+		if(matrix[i][k] != 0.f)
 		{
-			std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(row)};
+			pivots.emplace_back(i,k);
+		
+			for(unsigned int j = (i+1); j < row; ++j)
+			{
+				std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(row)};
 
-			const float divMatrix = matrix[j][k] / matrix[i][k];
+				const float divMatrix = matrix[j][k] / matrix[i][k];
 		
-			identityMatrix[j][i] = -divMatrix;
-			LMatrix[j][i] = divMatrix;
+				identityMatrix[j][i] = -divMatrix;
+				LMatrix[j][i] = divMatrix;
 		
-			matrix = MultiMat(identityMatrix, matrix);
-			b = MultiMat(identityMatrix, b);
+				matrix = MultiMat(identityMatrix, matrix);
+				b = MultiMat(identityMatrix, b);
+			}
 		}
-		++k;
 	}
 	
 	PrintMatrix(matrix);
