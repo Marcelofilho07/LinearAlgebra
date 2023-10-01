@@ -4,6 +4,8 @@
 
 void PrintMatrix(const std::vector<std::vector<float>>& matrix)
 {
+	std::cout <<" --------------PRINTING-MATRIX----------------" << std::endl;
+	
 	for (const std::vector<float>& r : matrix)
 	{
 		for(const float c : r)
@@ -12,6 +14,7 @@ void PrintMatrix(const std::vector<std::vector<float>>& matrix)
 		}
 		std::cout << std::endl;
 	}
+	std::cout <<" ---------------------------------------------" << std::endl;
 }
 
 std::vector<std::vector<float>> MultiMat(std::vector<std::vector<float>> A, std::vector<std::vector<float>> B)
@@ -35,6 +38,25 @@ std::vector<std::vector<float>> MultiMat(std::vector<std::vector<float>> A, std:
 	}
 
 	return returnMatrix;
+}
+
+std::vector<std::vector<float>> GenerateTranspose(std::vector<std::vector<float>>& matrix)
+{
+	std::vector<std::vector<float>> transpose;
+	int m = matrix[0].size();
+	int n = matrix.size();
+	for(int i = 0; i < m; ++i)
+	{
+		std::vector<float> newTransposedRow;
+		for(int j = 0; j < n; ++j)
+		{
+			newTransposedRow.push_back(matrix[j][i]);
+		}
+
+		transpose.push_back(newTransposedRow);
+	}
+
+	return transpose;
 }
 
 std::vector<std::vector<float>> GeneratePermutationMatrix(int firstRow, int secondRow, int size)
@@ -98,7 +120,39 @@ std::vector<std::vector<float>> GenerateIdentityMatrix(int size)
 	return GeneratePermutationMatrix(-1,-1, size);
 }
 
-void LinearCombination(std::vector<std::vector<float>>& matrix)
+void BackSubstitution(std::vector<std::vector<float>>& matrixA, std::vector<std::vector<float>>& matrixB, bool showSteps = false)
+{
+	int m = matrixA.size();
+	int n = matrixA[0].size();
+
+	for (int i = m - 1; i > 0; --i)
+	{
+		for(int j = (i-1); j >= 0; --j)
+		{
+			std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(n)};
+			
+			float divMatrix = matrixA[j][i] / matrixA[i][i];
+			
+			identityMatrix[j][i] = -divMatrix;
+			
+			matrixA = MultiMat(identityMatrix, matrixA);
+			matrixB = MultiMat(identityMatrix, matrixB);
+		}
+
+		
+		std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(n)};
+			
+		identityMatrix[i][i] = 1.f/matrixA[i][i];
+		
+		matrixA = MultiMat(identityMatrix, matrixA);
+		matrixB = MultiMat(identityMatrix, matrixB);
+	}
+
+		PrintMatrix(matrixA);
+		PrintMatrix(matrixB);
+}
+
+void LinearCombination(std::vector<std::vector<float>>& matrix, std::vector<std::vector<float>>& b, bool showSteps = false)
 {
 	/*
 	 * Ax = b
@@ -132,7 +186,7 @@ void LinearCombination(std::vector<std::vector<float>>& matrix)
 	//std::vector<std::vector<float>> matrix {std::vector<float>{1.f,2.f,1.f},std::vector<float>{3.f,8.f,1.f},std::vector<float>{0.f,4.f,1.f}};
 	//std::vector<std::vector<float>> matrix {std::vector<float>{2.f,1.f,3.f},std::vector<float>{15.f,2.f,0.f},std::vector<float>{1.f,3.f,1.f}};
 	
-	std::vector<std::vector<float>> b {std::vector<float>{2.f},std::vector<float>{12.f},std::vector<float>{2.f}};
+	//std::vector<std::vector<float>> b {std::vector<float>{2.f},std::vector<float>{12.f},std::vector<float>{2.f}};
 	
 	PrintMatrix(matrix);
 
@@ -171,6 +225,7 @@ void LinearCombination(std::vector<std::vector<float>>& matrix)
 	}
 	
 	PrintMatrix(matrix);
+	PrintMatrix(b);
 }
 
 void GaussEliminationPartialPivot(std::vector<std::vector<float>>& matrix)
@@ -276,39 +331,38 @@ void GaussEliminationCompletePivot(std::vector<std::vector<float>>& matrix)
 	PrintMatrix(matrix);
 }
 
-void EchelonForm(std::vector<std::vector<float>>& matrix)
+void EchelonForm(std::vector<std::vector<float>>& matrixA, std::vector<std::vector<float>>& matrixB, bool showSteps = false)
 {
-	const unsigned int row = matrix.size();
-	const unsigned int col = matrix[0].size();
+	const unsigned int row = matrixA.size();
+	const unsigned int col = matrixA[0].size();
 	
-	std::vector<std::vector<float>> b {std::vector<float>{2.f},std::vector<float>{12.f},std::vector<float>{2.f}};
 	
-	PrintMatrix(matrix);
+	PrintMatrix(matrixA);
 	std::vector<std::pair<int, int>> pivots;
 	std::vector<std::vector<float>> LMatrix {std::vector<float>{1.f,0.f,0.f},std::vector<float>{0.f,1.f,0.f},std::vector<float>{0.f,0.f,1.f}};
 
 	for (unsigned int i = 0, k = 0; i < row-1  && k < col-1; ++i, ++k)
 	{
-		while(matrix[i][k] == 0.f && k < col)
+		while(matrixA[i][k] == 0.f && k < col)
 		{
 			++k;
-			if(matrix[i][k] == 0.f)
+			if(matrixA[i][k] == 0.f)
 			{
 				int rowToSwap = i;
-				float maxScalar = matrix[i][i];
+				float maxScalar = matrixA[i][i];
 				for(unsigned int j = (i+1); j < row; ++j)
 				{
-					if(std::abs(matrix[j][i]) > maxScalar)
+					if(std::abs(matrixA[j][i]) > maxScalar)
 					{
 						rowToSwap = j;
 					}
-					maxScalar = std::max(maxScalar, std::abs(matrix[j][i]));
+					maxScalar = std::max(maxScalar, std::abs(matrixA[j][i]));
 				}
 	
-				matrix = MultiMat(GeneratePermutationMatrix(i,rowToSwap,row), matrix);
+				matrixA = MultiMat(GeneratePermutationMatrix(i,rowToSwap,row), matrixA);
 			}
 		}
-		if(matrix[i][k] != 0.f)
+		if(matrixA[i][k] != 0.f)
 		{
 			pivots.emplace_back(i,k);
 		
@@ -316,18 +370,21 @@ void EchelonForm(std::vector<std::vector<float>>& matrix)
 			{
 				std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(row)};
 
-				const float divMatrix = matrix[j][k] / matrix[i][k];
+				const float divMatrix = matrixA[j][k] / matrixA[i][k];
 		
 				identityMatrix[j][i] = -divMatrix;
 				LMatrix[j][i] = divMatrix;
 		
-				matrix = MultiMat(identityMatrix, matrix);
-				b = MultiMat(identityMatrix, b);
+				matrixA = MultiMat(identityMatrix, matrixA);
+				matrixB = MultiMat(identityMatrix, matrixB);
 			}
 		}
 	}
-	
-	PrintMatrix(matrix);
+
+	if(showSteps)
+	{
+		PrintMatrix(matrixA);
+	}
 
 	for(auto p : pivots)
 	{
@@ -337,24 +394,46 @@ void EchelonForm(std::vector<std::vector<float>>& matrix)
 			{
 				std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(row)};
 	
-				const float divMatrix = matrix[j][p.second] / matrix[p.first][p.second];
+				const float divMatrix = matrixA[j][p.second] / matrixA[p.first][p.second];
 		
 				identityMatrix[j][p.first] = -divMatrix;
 				LMatrix[j][p.first] = divMatrix;
 		
-				matrix = MultiMat(identityMatrix, matrix);
-				b = MultiMat(identityMatrix, b);
+				matrixA = MultiMat(identityMatrix, matrixA);
+				matrixB= MultiMat(identityMatrix, matrixB);
 			}
 		}
 		
 		std::vector<std::vector<float>> identityMatrix {GenerateIdentityMatrix(row)};
 	
-		identityMatrix[p.first][p.first] = 1/matrix[p.first][p.second];
-		matrix = MultiMat(identityMatrix, matrix);
+		identityMatrix[p.first][p.first] = 1/matrixA[p.first][p.second];
+		matrixA = MultiMat(identityMatrix, matrixA);
+		matrixB = MultiMat(identityMatrix, matrixB);
 		
 	}
 	
-	PrintMatrix(matrix);
+	PrintMatrix(matrixA);
+	PrintMatrix(matrixB);
+}
+
+
+void LeastSquares(std::vector<std::vector<float>>& matrixA, std::vector<std::vector<float>>& matrixB)
+{
+	//AT A X^ = AT b
+
+	std::vector<std::vector<float>> matrixATA = MultiMat(GenerateTranspose(matrixA), matrixA);
+	std::vector<std::vector<float>> matrixATB = MultiMat(GenerateTranspose(matrixA), matrixB);
+	PrintMatrix(matrixATA);
+	PrintMatrix(matrixATB);
+
+	
+	EchelonForm(matrixATA, matrixATB, true);
+
+	//this prints x^
+	BackSubstitution(matrixATA,matrixATB);
+
+	//this prints P
+	PrintMatrix(MultiMat(matrixA, matrixATB));
 }
 
 int main()
@@ -362,6 +441,8 @@ int main()
 	//std::vector<std::vector<float>> matrix {std::vector<float>{2.f,1.f,-1.f},std::vector<float>{-3.f,-1.f,2.f},std::vector<float>{-2.f,1.f,2.f}};
 	std::vector<std::vector<float>> matrix {std::vector<float>{1.f, 2.f,2.f,2.f},std::vector<float>{2.f,4.f,6.f, 8.f},std::vector<float>{3.f,6.f,8.f, 10.f}};
 	std::cout << "Hello World!" << std::endl;
+	std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,2},std::vector<float>{1,3}};
+	std::vector<std::vector<float>> matrixB {std::vector<float>{1},std::vector<float>{2},std::vector<float>{2}};
 	//LinearCombination(matrix);
 	// GaussEliminationPartialPivot(matrix);
 	// matrix.clear();
@@ -369,7 +450,10 @@ int main()
 	// matrix.push_back(std::vector<float>{-3.f,-1.f,2.f});
 	// matrix.push_back(std::vector<float>{-2.f,1.f,2.f});
 	// GaussEliminationCompletePivot(matrix);
-	EchelonForm(matrix);
+	//EchelonForm(matrix);
+	//matrix = GenerateTranspose(matrixA);
+
+	LeastSquares(matrixA,matrixB);
 	
     return 0;
     
