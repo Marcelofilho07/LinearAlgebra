@@ -17,6 +17,24 @@ void PrintMatrix(const std::vector<std::vector<float>>& matrix)
 	std::cout <<" ---------------------------------------------" << std::endl;
 }
 
+float operator/ (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+{
+	return matrixA[0][0] / matrixB[0][0];
+}
+
+
+std::vector<std::vector<float>> operator- (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+{
+	std::vector<float> newVec;
+	newVec.reserve(matrixA.size());
+	for(int i = 0; i < matrixA.size(); ++i)
+	{
+		newVec.push_back(matrixA[0][i] - matrixB[0][i]);
+	}
+	
+	return std::vector<std::vector<float>>{newVec};
+}
+
 std::vector<std::vector<float>> MultiMat(std::vector<std::vector<float>> A, std::vector<std::vector<float>> B)
 {
 	std::vector<std::vector<float>> returnMatrix;
@@ -436,13 +454,40 @@ void LeastSquares(std::vector<std::vector<float>>& matrixA, std::vector<std::vec
 	PrintMatrix(MultiMat(matrixA, matrixATB));
 }
 
+void GramSchmidt(std::vector<std::vector<float>>& matrixA)
+{
+	//B = b - (AT b / AT A) A
+	//C = c - (AT c / AT A) A - (BT c/ BT B) B
+	// Work in progress
+
+	std::vector<std::vector<float>> orthoVectors;
+	std::vector<std::vector<float>> matrixQ;
+	for(auto vec : matrixA)
+	{
+		std::vector<float> newVec = vec;
+		for(auto ortho : orthoVectors)
+		{
+			std::vector<std::vector<float>> A = {ortho};
+			std::vector<std::vector<float>> b = {vec};
+			std::vector<std::vector<float>> ATbATA = {std::vector<float>{(MultiMat(GenerateTranspose(A), b) / MultiMat(GenerateTranspose(A), A))}};
+
+			newVec = (std::vector<std::vector<float>>{newVec}  - MultiMat(ATbATA, A))[0];
+		}
+		
+		orthoVectors.push_back(newVec);
+	}
+
+	PrintMatrix(orthoVectors);
+}
+
 int main()
 {
 	//std::vector<std::vector<float>> matrix {std::vector<float>{2.f,1.f,-1.f},std::vector<float>{-3.f,-1.f,2.f},std::vector<float>{-2.f,1.f,2.f}};
 	std::vector<std::vector<float>> matrix {std::vector<float>{1.f, 2.f,2.f,2.f},std::vector<float>{2.f,4.f,6.f, 8.f},std::vector<float>{3.f,6.f,8.f, 10.f}};
 	std::cout << "Hello World!" << std::endl;
-	std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,2},std::vector<float>{1,3}};
-	std::vector<std::vector<float>> matrixB {std::vector<float>{1},std::vector<float>{2},std::vector<float>{2}};
+	//std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,2},std::vector<float>{1,3}};
+	//std::vector<std::vector<float>> matrixB {std::vector<float>{1},std::vector<float>{2},std::vector<float>{2}};
+	std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,0},std::vector<float>{1,2}};
 	//LinearCombination(matrix);
 	// GaussEliminationPartialPivot(matrix);
 	// matrix.clear();
@@ -453,7 +498,9 @@ int main()
 	//EchelonForm(matrix);
 	//matrix = GenerateTranspose(matrixA);
 
-	LeastSquares(matrixA,matrixB);
+	//LeastSquares(matrixA,matrixB);
+
+	GramSchmidt(matrixA);
 	
     return 0;
     
