@@ -23,17 +23,147 @@ float operator/ (const std::vector<std::vector<float>>& matrixA, const std::vect
 }
 
 
-std::vector<std::vector<float>> operator- (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+std::vector<std::vector<float>>& operator/ (std::vector<std::vector<float>>& matrixA, float divider)
 {
-	std::vector<float> newVec;
-	newVec.reserve(matrixA.size());
+	for(auto row : matrixA)
+	{
+		for(auto a : row)
+		{
+			a /= divider;
+		}
+	}
+
+	return matrixA;
+}
+
+bool operator==(const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+{
 	for(int i = 0; i < matrixA.size(); ++i)
 	{
-		newVec.push_back(matrixA[0][i] - matrixB[0][i]);
+		for(int j = 0; j < matrixB[i].size(); ++j)
+		{
+			if(matrixA[i][j] != matrixB[i][j])
+			{
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+std::vector<std::vector<float>> operator- (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+{
+	std::vector<std::vector<float>> newMatrix = matrixA;
+	for(int i = 0; i < matrixA.size(); ++i)
+	{
+		for(int j = 0; j < matrixB[i].size(); ++j)
+		{
+			newMatrix[i][j] = matrixA[i][j] - matrixB[i][j];
+		}
+	}
+
+	return newMatrix;
+}
+
+
+std::vector<std::vector<float>> operator-= (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+{
+	std::vector<std::vector<float>> newMatrix = matrixA;
+	for(int i = 0; i < matrixA.size(); ++i)
+	{
+		for(int j = 0; j < matrixB[i].size(); ++j)
+		{
+			newMatrix[i][j] = matrixA[i][j] - matrixB[i][j];
+		}
+	}
+
+	return newMatrix;
+}
+
+
+
+std::vector<float> operator- (const std::vector<float>& vectorA, const std::vector<float>& vectorB)
+{
+	std::vector<float> newVector = vectorA;
+	for(int i = 0; i < vectorA.size(); ++i)
+	{
+		newVector[i] = vectorA[i] - vectorB[i];		
 	}
 	
-	return std::vector<std::vector<float>>{newVec};
+	return newVector;
 }
+
+
+std::vector<std::vector<float>> operator* (std::vector<std::vector<float>> A, std::vector<std::vector<float>> B)
+{
+	std::vector<std::vector<float>> returnMatrix;
+	
+	const unsigned long long rows = A.size();
+	const unsigned long long innerRows = A[0].size();
+	const unsigned long long cols = B[0].size();
+	for(int i = 0; i < rows; ++i)
+	{
+		returnMatrix.emplace_back();
+		for(int j = 0; j < cols; ++j)
+		{
+			returnMatrix[i].push_back(0);
+			for(int k = 0; k < innerRows; ++k)
+			{
+				returnMatrix[i][j] += A[i][k] * B[k][j];
+			}
+		}
+	}
+
+	return returnMatrix;
+}
+
+std::vector<std::vector<float>> operator* (std::vector<std::vector<float>> A, std::vector<float> B)
+{
+	std::vector<std::vector<float>> returnMatrix;
+	
+	const unsigned long long rows = A.size();
+	const unsigned long long innerRows = A[0].size();
+	const unsigned long long cols = B.size();
+	for(int i = 0; i < rows; ++i)
+	{
+		returnMatrix.emplace_back();
+		for(int j = 0; j < cols; ++j)
+		{
+			returnMatrix[i].push_back(0);
+			for(int k = 0; k < innerRows; ++k)
+			{
+				returnMatrix[i][j] += A[i][k] * B[k];
+			}
+		}
+	}
+	return returnMatrix;
+}
+
+std::vector<std::vector<float>> operator* (float A, std::vector<std::vector<float>>& B)
+{
+	for(const auto& row : B)
+	{
+		for(auto value : row)
+		{
+			value *= A;
+		}
+	}
+	
+	return B;
+}
+
+// std::vector<std::vector<float>> operator- (const std::vector<std::vector<float>>& matrixA, const std::vector<std::vector<float>>& matrixB)
+// {
+// 	std::vector<float> newVec;
+// 	newVec.reserve(matrixA.size());
+// 	for(int i = 0; i < matrixA.size(); ++i)
+// 	{
+// 		newVec.push_back(matrixA[0][i] - matrixB[0][i]);
+// 	}
+// 	
+// 	return std::vector<std::vector<float>>{newVec};
+// }
 
 std::vector<std::vector<float>> MultiMat(std::vector<std::vector<float>> A, std::vector<std::vector<float>> B)
 {
@@ -61,8 +191,8 @@ std::vector<std::vector<float>> MultiMat(std::vector<std::vector<float>> A, std:
 std::vector<std::vector<float>> GenerateTranspose(std::vector<std::vector<float>>& matrix)
 {
 	std::vector<std::vector<float>> transpose;
-	int m = matrix[0].size();
-	int n = matrix.size();
+	const int m = matrix[0].size();
+	const int n = matrix.size();
 	for(int i = 0; i < m; ++i)
 	{
 		std::vector<float> newTransposedRow;
@@ -76,6 +206,27 @@ std::vector<std::vector<float>> GenerateTranspose(std::vector<std::vector<float>
 
 	return transpose;
 }
+
+std::vector<std::vector<float>> GenerateTranspose(const std::vector<float>& vector)
+{
+	std::vector<std::vector<float>> transpose;
+	const int m = vector.size();
+	const int n = 1;
+	for(int i = 0; i < m; ++i)
+	{
+		std::vector<float> newTransposedRow;
+		for(int j = 0; j < n; ++j)
+		{
+			newTransposedRow.push_back(vector[i]);
+		}
+
+		transpose.push_back(newTransposedRow);
+	}
+
+	return transpose;
+}
+
+
 
 std::vector<std::vector<float>> GeneratePermutationMatrix(int firstRow, int secondRow, int size)
 {
@@ -454,40 +605,63 @@ void LeastSquares(std::vector<std::vector<float>>& matrixA, std::vector<std::vec
 	PrintMatrix(MultiMat(matrixA, matrixATB));
 }
 
-void GramSchmidt(std::vector<std::vector<float>>& matrixA)
+float VectorSize(std::vector<std::vector<float>>& vector)
+{
+	float size = 0;
+	for(auto row : vector)
+	{
+		for(auto a : row)
+		{
+			size += a * a;
+		}
+	}
+
+	return sqrt(size);
+}
+
+void GramSchmidt(std::vector<std::vector<std::vector<float>>>& matrix)
 {
 	//B = b - (AT b / AT A) A
 	//C = c - (AT c / AT A) A - (BT c/ BT B) B
-	// Work in progress
-
-	std::vector<std::vector<float>> orthoVectors;
-	std::vector<std::vector<float>> matrixQ;
-	for(auto vec : matrixA)
+	//D = d - (AT d / AT A) A - (BT d/ BT B) B - (CT d/ CT C) C
+	bool first = true;
+	std::vector<std::vector<std::vector<float>>> orthonormalized;
+	for(auto vector : matrix)
 	{
-		std::vector<float> newVec = vec;
-		for(auto ortho : orthoVectors)
+		bool skip = false;
+		std::vector<std::vector<float>> original = vector;
+		for(auto orthoVector : matrix )
 		{
-			std::vector<std::vector<float>> A = {ortho};
-			std::vector<std::vector<float>> b = {vec};
-			std::vector<std::vector<float>> ATbATA = {std::vector<float>{(MultiMat(GenerateTranspose(A), b) / MultiMat(GenerateTranspose(A), A))}};
-
-			newVec = (std::vector<std::vector<float>>{newVec}  - MultiMat(ATbATA, A))[0];
+			if(original == orthoVector)
+			{
+				skip = true;
+			}
+			if(!skip)
+			{
+				vector = vector - ((GenerateTranspose(orthoVector) * vector) / (GenerateTranspose(orthoVector) * orthoVector) * orthoVector);
+			}
 		}
-		
-		orthoVectors.push_back(newVec);
+
+		//Fix this operator overload!
+		orthonormalized.push_back(vector/VectorSize(vector));
 	}
 
-	PrintMatrix(orthoVectors);
+	for (auto a : orthonormalized)
+	{
+		PrintMatrix(a);
+	}
 }
 
 int main()
 {
 	//std::vector<std::vector<float>> matrix {std::vector<float>{2.f,1.f,-1.f},std::vector<float>{-3.f,-1.f,2.f},std::vector<float>{-2.f,1.f,2.f}};
-	std::vector<std::vector<float>> matrix {std::vector<float>{1.f, 2.f,2.f,2.f},std::vector<float>{2.f,4.f,6.f, 8.f},std::vector<float>{3.f,6.f,8.f, 10.f}};
+	//std::vector<std::vector<float>> matrix {std::vector<float>{1.f, 2.f,2.f,2.f},std::vector<float>{2.f,4.f,6.f, 8.f},std::vector<float>{3.f,6.f,8.f, 10.f}};
 	std::cout << "Hello World!" << std::endl;
 	//std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,2},std::vector<float>{1,3}};
 	//std::vector<std::vector<float>> matrixB {std::vector<float>{1},std::vector<float>{2},std::vector<float>{2}};
-	std::vector<std::vector<float>> matrixA {std::vector<float>{1,1},std::vector<float>{1,0},std::vector<float>{1,2}};
+	std::vector<std::vector<float>> matrixA {std::vector<float>{1},std::vector<float>{1},std::vector<float>{1}};
+	std::vector<std::vector<float>> matrixB {std::vector<float>{1},std::vector<float>{0},std::vector<float>{2}};
+	std::vector<std::vector<std::vector<float>>> matrix = {matrixA, matrixB};
 	//LinearCombination(matrix);
 	// GaussEliminationPartialPivot(matrix);
 	// matrix.clear();
@@ -500,7 +674,7 @@ int main()
 
 	//LeastSquares(matrixA,matrixB);
 
-	GramSchmidt(matrixA);
+	GramSchmidt(matrix);
 	
     return 0;
     
